@@ -50,14 +50,11 @@ public class ArvoreBinaria {
         } else if (valor > atual.getValor()) {
             atual.setDir(removerRecursivo(atual.getDir(), valor));
         } else {
-            // Nó encontrado - precisamos removê-lo
 
-            // Caso 1: Nó folha
             if (atual.getEsq() == null && atual.getDir() == null) {
                 return null;
             }
 
-            // Caso 2: Nó com apenas um filho
             if (atual.getEsq() == null) {
                 return atual.getDir();
             }
@@ -65,8 +62,6 @@ public class ArvoreBinaria {
                 return atual.getEsq();
             }
 
-            // Caso 3: Nó com dois filhos
-            // Encontrar o sucessor (menor valor na subárvore direita)
             No menorValorNo = encontrarMenorValor(atual.getDir());
             atual.setValor(menorValorNo.getValor());
             atual.setDir(removerRecursivo(atual.getDir(), menorValorNo.getValor()));
