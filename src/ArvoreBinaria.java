@@ -1,4 +1,6 @@
-public class ArvoreBinaria {
+import java.util.Stack;
+
+class ArvoreBinaria {
     private No raiz;
 
     public ArvoreBinaria() {
@@ -7,24 +9,20 @@ public class ArvoreBinaria {
 
     public void inserir(int valor) {
         No novoNo = new No(valor);
-        if(this.raiz == null) {
+        if (this.raiz == null) {
             this.raiz = novoNo;
         } else {
             No atual = this.raiz;
             No pai = null;
-            boolean esquerda = false;
-            while(atual != null) {
-                if(novoNo.getValor() < atual.getValor()) {
-                    pai = atual;
+            while (atual != null) {
+                pai = atual;
+                if (novoNo.getValor() < atual.getValor()) {
                     atual = atual.getEsq();
-                    esquerda = true;
                 } else {
-                    pai = atual;
                     atual = atual.getDir();
-                    esquerda = false;
                 }
             }
-            if(esquerda) {
+            if (novoNo.getValor() < pai.getValor()) {
                 pai.setEsq(novoNo);
             } else {
                 pai.setDir(novoNo);
@@ -37,67 +35,153 @@ public class ArvoreBinaria {
     }
 
     public void remover(int valor) {
-        raiz = removerRecursivo(raiz, valor);
-    }
+        // 1. Encontra o nó que vai ser removido e seu pai
+        No atual = this.raiz;
+        No pai = null;
+        boolean isEsqFilho = true;
 
-    private No removerRecursivo(No atual, int valor) {
+        while (atual != null && atual.getValor() != valor) {
+            pai = atual;
+            if (valor < atual.getValor()) {
+                isEsqFilho = true;
+                atual = atual.getEsq();
+            } else {
+                isEsqFilho = false;
+                atual = atual.getDir();
+            }
+        }
+
+        // Nó não encontrado
         if (atual == null) {
-            return null;
+            return;
         }
 
-        if (valor < atual.getValor()) {
-            atual.setEsq(removerRecursivo(atual.getEsq(), valor));
-        } else if (valor > atual.getValor()) {
-            atual.setDir(removerRecursivo(atual.getDir(), valor));
-        } else {
-
-            if (atual.getEsq() == null && atual.getDir() == null) {
-                return null;
+        // Verifica se o nó não tem filhos
+        if (atual.getEsq() == null && atual.getDir() == null) {
+            if (atual == raiz) {
+                raiz = null;
+            } else if (isEsqFilho) {
+                pai.setEsq(null);
+            } else {
+                pai.setDir(null);
             }
-
-            if (atual.getEsq() == null) {
-                return atual.getDir();
-            }
-            if (atual.getDir() == null) {
-                return atual.getEsq();
-            }
-
-            No menorValorNo = encontrarMenorValor(atual.getDir());
-            atual.setValor(menorValorNo.getValor());
-            atual.setDir(removerRecursivo(atual.getDir(), menorValorNo.getValor()));
         }
 
-        return atual;
+        // Verifica se o nó tem só um filho
+        else if (atual.getEsq() == null) {
+            if (atual == raiz) {
+                raiz = atual.getDir();
+            } else if (isEsqFilho) {
+                pai.setEsq(atual.getDir());
+            } else {
+                pai.setDir(atual.getDir());
+            }
+        } else if (atual.getDir() == null) {
+            if (atual == raiz) {
+                raiz = atual.getEsq();
+            } else if (isEsqFilho) {
+                pai.setEsq(atual.getEsq());
+            } else {
+                pai.setDir(atual.getEsq());
+            }
+        }
+
+        // Verifica se o nó tem dois filhos
+        else {
+            No sucessor = getSucessor(atual);
+            if (atual == raiz) {
+                raiz = sucessor;
+            } else if (isEsqFilho) {
+                pai.setEsq(sucessor);
+            } else {
+                pai.setDir(sucessor);
+            }
+            sucessor.setEsq(atual.getEsq());
+        }
     }
 
-    private No encontrarMenorValor(No no) {
-        return no.getEsq() == null ? no : encontrarMenorValor(no.getEsq());
+    private No getSucessor(No no) {
+        // Verifica o menor nó a direita
+        No sucessorPai = no;
+        No sucessor = no;
+        No atual = no.getDir();
+
+        while (atual != null) {
+            sucessorPai = sucessor;
+            sucessor = atual;
+            atual = atual.getEsq();
+        }
+
+        // Ajustar o pai
+        if (sucessor != no.getDir()) {
+            sucessorPai.setEsq(sucessor.getDir());
+            sucessor.setDir(no.getDir());
+        }
+
+        return sucessor;
     }
 
     public void preOrdem(No no) {
-        if(no == null) {
+        if (no == null) {
             return;
         }
-        System.out.println(no.getValor());
-        preOrdem(no.getEsq());
-        preOrdem(no.getDir());
+        Stack<No> pilha = new Stack<>();
+        pilha.push(no);
+
+        while (!pilha.isEmpty()) {
+            No atual = pilha.pop();
+            System.out.println(atual.getValor());
+
+            if (atual.getDir() != null) {
+                pilha.push(atual.getDir());
+            }
+            if (atual.getEsq() != null) {
+                pilha.push(atual.getEsq());
+            }
+        }
     }
 
     public void emOrdem(No no) {
-        if(no == null) {
+        if (no == null) {
             return;
         }
-        emOrdem(no.getEsq());
-        System.out.println(no.getValor());
-        emOrdem(no.getDir());
+        Stack<No> pilha = new Stack<>();
+        No atual = no;
+
+        while (atual != null || !pilha.isEmpty()) {
+            while (atual != null) {
+                pilha.push(atual);
+                atual = atual.getEsq();
+            }
+
+            atual = pilha.pop();
+            System.out.println(atual.getValor());
+            atual = atual.getDir();
+        }
     }
 
     public void posOrdem(No no) {
-        if(no == null) {
+        if (no == null) {
             return;
         }
-        posOrdem(no.getEsq());
-        posOrdem(no.getDir());
-        System.out.println(no.getValor());
+        Stack<No> pilha1 = new Stack<>();
+        Stack<No> pilha2 = new Stack<>();
+        pilha1.push(no);
+
+        while (!pilha1.isEmpty()) {
+            No atual = pilha1.pop();
+            pilha2.push(atual);
+
+            if (atual.getEsq() != null) {
+                pilha1.push(atual.getEsq());
+            }
+            if (atual.getDir() != null) {
+                pilha1.push(atual.getDir());
+            }
+        }
+
+        while (!pilha2.isEmpty()) {
+            System.out.println(pilha2.pop().getValor());
+        }
     }
 }

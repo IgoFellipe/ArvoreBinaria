@@ -1,4 +1,4 @@
-public class No {
+class No {
     private int valor;
     private No esq;
     private No dir;
